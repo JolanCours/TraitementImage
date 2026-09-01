@@ -65,7 +65,7 @@ class CustomImage:
         with open(f"data/{self.image_name}.raw", "w") as f:
             for ligne in self.pixels:
                 for pixel in ligne:
-                    f.write(f"{pixel[0]},{pixel[1]},{pixel[2]}")
+                    f.write(f"{pixel[0]},{pixel[1]},{pixel[2]},")
                 f.write(f"\n")
 
 
