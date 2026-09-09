@@ -64,7 +64,8 @@ def main():
 
     pixels = image.get_pixels()
 
-    pixels = bruit.poivre_sel(pixels)
+    pixels = bruit.additif(pixels)
+    
 
     continuer = True
 
