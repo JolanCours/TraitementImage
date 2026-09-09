@@ -1,95 +1,94 @@
-#web
-
 import pygame
 from pygame.locals import *
-import os.path
-
 from PIL import Image
+import os
+import random
 
-#nos fichiers
 import bruit
 import debruitage
 
 
-def init_pygame():
-    pygame.init()
-
-
-    fenetre = pygame.display.set_mode((800, 600))
-    fond = pygame.image.load("images/gradient.png").convert()
-    fenetre.blit(fond, (0, 0))
-
-
-
-def loop_pygame():
-
-    continuer = True
-    while continuer:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                continuer = False
-    pygame.quit()
-
-
 class CustomImage:
 
-    def __init__(self, image):
-        self.image = Image.open(image)
-        self.image_name = image.replace(".png", "").replace(".jpg", "").split("/")[1]
+    def __init__(self, image_path):
+        self.image_path = image_path
+        self.image = Image.open(image_path).convert("RGB")
+
         self.width, self.height = self.image.size
+
+        self.image_name = os.path.splitext(
+            os.path.basename(image_path)
+        )[0]
+
         self.pixels = []
 
     def load(self):
-        data = self.image.get_flattened_data()
-        for y in range(0, self.height):
-            temp_list = []
-            for x in range(0, self.width):
+        self.pixels = []
 
-                current_pixel = data[x + y]
+        for y in range(self.height):
+            ligne = []
 
-                value = [
-                    current_pixel[0],
-                    current_pixel[1],
-                    current_pixel[2]
-                ]
+            for x in range(self.width):
+                r, g, b = self.image.getpixel((x, y))
+                ligne.append([r, g, b])
 
-                temp_list.append(value)
+            self.pixels.append(ligne)
 
-            self.pixels.append(temp_list)
+    def get_pixels(self):
+        return self.pixels
 
-        if not os.path.isfile(f"data/{self.image_name}.raw"):
-            self.save()
+    def set_pixels(self, pixels):
+        self.pixels = pixels
 
-    def save(self):
-        os.makedirs("data", exist_ok=True)
-        with open(f"data/{self.image_name}.raw", "w") as f:
-            for ligne in self.pixels:
-                for pixel in ligne:
-                    f.write(f"{pixel[0]},{pixel[1]},{pixel[2]},")
-                f.write(f"\n")
+    def afficher(self, fenetre):
 
+        surface = pygame.Surface((self.width, self.height))
 
+        for y in range(self.height):
+            for x in range(self.width):
+                r, g, b = self.pixels[y][x]
 
+                surface.set_at((x, y), (r, g, b))
 
-    def afficher(self):
-        pass
+        fenetre.blit(surface, (0, 0))
 
 
+def main():
 
-image = CustomImage("images/gradient.png")
+    pygame.init()
 
+    fenetre = pygame.display.set_mode((1280, 853))
+    pygame.display.set_caption("Traitement d'image")
 
-def mesurer_qualite_image():
-    pass
-
-
-if __name__ == '__main__':
-    init_pygame()
-    loop_pygame()
-
-    bruit.poivre_sel()
-    debruitage.filtrage_median()
-
-
+    image = CustomImage("images/sample_1280×853.bmp")
     image.load()
 
+    pixels = image.get_pixels();
+
+    for x in pixels:
+        for i in range(random.randint(0,700)):
+            rand1 = random.randint(0, 255)
+            rand2 = random.randint(0, 255)
+            rand3 = random.randint(0, 255)
+            x[i] = (rand1, rand2, rand3)
+
+    continuer = True
+
+    while continuer:
+
+        for event in pygame.event.get():
+
+            if event.type == QUIT:
+                continuer = False
+
+        fenetre.fill((30, 30, 30))
+
+        image.afficher(fenetre)
+
+        pygame.display.flip()
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()
