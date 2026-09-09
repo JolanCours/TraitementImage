@@ -3,7 +3,6 @@ from pygame.locals import *
 from PIL import Image
 import os
 import random
-
 import bruit
 import debruitage
 
@@ -63,14 +62,9 @@ def main():
     image = CustomImage("images/sample_1280×853.bmp")
     image.load()
 
-    pixels = image.get_pixels();
+    pixels = image.get_pixels()
 
-    for x in pixels:
-        for i in range(random.randint(0,700)):
-            rand1 = random.randint(0, 255)
-            rand2 = random.randint(0, 255)
-            rand3 = random.randint(0, 255)
-            x[i] = (rand1, rand2, rand3)
+    pixels = bruit.poivre_sel(pixels)
 
     continuer = True
 
