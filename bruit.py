@@ -42,13 +42,16 @@ def bruit_additif(width, height):
         ligne = []
         
         for x in range(height):
-            valeur = random.randint(0, 255)
+            valeur = random.randint(-50, 50)
             r, g, b = valeur, valeur, valeur
             ligne.append([r, g, b])
 
         pixels.append(ligne)
 
     return pixels
+
+def limiter(valeur):
+    return max(0, min(255, valeur))
 
 def additif(peekaboo = list[list]) :
     
@@ -59,12 +62,7 @@ def additif(peekaboo = list[list]) :
     
     for x in range (largeur):
         for y in range (hauteur):
-            if (peekaboo[x][y][0] + temp[x][y][0] < 255 and peekaboo[x][y][1] + temp[x][y][1] < 255 and peekaboo[x][y][1] + temp[x][y][1] < 255):
-                valeur = (peekaboo[x][y][0] + temp[x][y][0], peekaboo[x][y][1] + temp[x][y][1], peekaboo[x][y][2] + temp[x][y][2])
-            elif (peekaboo[x][y][0] - temp[x][y][0] > 0 and peekaboo[x][y][1] - temp[x][y][1] > 0 and peekaboo[x][y][1] - temp[x][y][1] > 0) :
-                valeur = (peekaboo[x][y][0] - temp[x][y][0], peekaboo[x][y][1] - temp[x][y][1], peekaboo[x][y][2] - temp[x][y][2])
-            else :
-                raise ValueError("Lorsque l'on rajoute ou supprime aux couleurs du pixel originel, certaines valeurs deviennent inférieures à 0 tandis que d'autres sont supérieures")
+            valeur = (limiter(peekaboo[x][y][0] + temp[x][y][0]), limiter(peekaboo[x][y][1] + temp[x][y][1]), limiter(peekaboo[x][y][2] + temp[x][y][2]))
             peekaboo[x][y] = valeur
     
     return peekaboo
