@@ -66,7 +66,6 @@ def main():
 
     pixels = bruit.additif(pixels)
     
-
     continuer = True
 
     while continuer:
@@ -81,7 +80,26 @@ def main():
         image.afficher(fenetre)
 
         pygame.display.flip()
-
+    
+    pixels = bruit.convolution(pixels)
+    
+    image.pixels = pixels
+    
+    debruitage = True;
+    
+    while debruitage:
+        
+        for event in pygame.event.get():
+            
+            if event.type == QUIT:
+                debruitage = False
+                
+        fenetre.fill((30,30,30))
+        
+        image.afficher(fenetre)
+        
+        pygame.display.flip()
+        
     pygame.quit()
 
 
