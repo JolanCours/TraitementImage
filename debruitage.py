@@ -1,6 +1,7 @@
 import numpy as np
 
 
+#Remplis les nouveaux pixels avec les valeurs des bords
 def agrandir_bords(image, rayon):
     return np.pad(image, ((rayon, rayon), (rayon, rayon), (0, 0)), mode="edge")
 

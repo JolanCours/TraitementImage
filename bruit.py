@@ -1,6 +1,6 @@
 import numpy as np
 
-SEED = 42
+SEED = 0
 
 
 def poivre_sel(image, taux=5):

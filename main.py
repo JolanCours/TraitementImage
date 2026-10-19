@@ -10,7 +10,7 @@ import bruit
 import debruitage
 from snr import calculer_snr
 
-IMAGE_PAR_DEFAUT = "images/sample_1280×853.bmp"
+IMAGE = "images/sample_1280×853.bmp"
 
 BRUITS = [
     {"nom": "Poivre et sel", "fonction": bruit.poivre_sel,
@@ -28,16 +28,20 @@ FILTRES = [
     {"nom": "Kuwahara", "fonction": debruitage.kuwahara},
 ]
 
+#
 LARGEUR = 1280
 HAUTEUR = 760
 PANNEAU = 260
 MARGE = 20
 
+# Zone
 ZONE_X = PANNEAU + MARGE
 ZONE_Y = 44
 ZONE_LARGEUR = LARGEUR - PANNEAU - 2 * MARGE
 ZONE_HAUTEUR = HAUTEUR - ZONE_Y - MARGE
 
+
+#Couleurs
 FOND = (30, 30, 30)
 FOND_PANNEAU = (42, 42, 42)
 BOUTON = (62, 62, 62)
@@ -47,6 +51,7 @@ ACCENT = (90, 150, 230)
 TEXTE = (230, 230, 230)
 TEXTE_DOUX = (150, 150, 150)
 TEXTE_INACTIF = (95, 95, 95)
+
 
 
 def charger_image(chemin):
@@ -97,7 +102,7 @@ class Curseur:
     def __init__(self, x, y, largeur, mini, maxi, pas, valeur):
         self.rect = pygame.Rect(x, y, largeur, 18)
         self.actif = True
-        self.en_glissement = False
+        self.dragging = False
         self.changer_reglage(mini, maxi, pas, valeur)
 
     def changer_reglage(self, mini, maxi, pas, valeur):
@@ -106,7 +111,7 @@ class Curseur:
         self.pas = pas
         self.valeur = valeur
 
-    def placer(self, x_souris):
+    def place(self, x_souris):
         proportion = (x_souris - self.rect.x) / self.rect.width
         if proportion < 0:
             proportion = 0
@@ -115,15 +120,15 @@ class Curseur:
         nombre_de_pas = round(proportion * (self.maxi - self.mini) / self.pas)
         self.valeur = self.mini + nombre_de_pas * self.pas
 
-    def gerer_evenement(self, evenement):
+    def handle_event(self, evenement):
         if evenement.type == pygame.MOUSEBUTTONDOWN and evenement.button == 1:
             if self.actif and self.rect.collidepoint(evenement.pos):
-                self.en_glissement = True
-                self.placer(evenement.pos[0])
-        if evenement.type == pygame.MOUSEMOTION and self.en_glissement:
-            self.placer(evenement.pos[0])
+                self.dragging = True
+                self.place(evenement.pos[0])
+        if evenement.type == pygame.MOUSEMOTION and self.dragging:
+            self.place(evenement.pos[0])
         if evenement.type == pygame.MOUSEBUTTONUP:
-            self.en_glissement = False
+            self.dragging = False
 
     def dessiner(self, ecran):
         proportion = (self.valeur - self.mini) / (self.maxi - self.mini)
@@ -166,6 +171,8 @@ class Application:
         self.choix_bruit = 0
         self.choix_filtre = 0
         self.reglages_bruit = []
+
+
         for b in BRUITS:
             self.reglages_bruit.append(b["defaut"])
 
@@ -179,8 +186,7 @@ class Application:
             y = y + 32
 
         premier = BRUITS[0]
-        self.curseur_bruit = Curseur(x, 212, largeur, premier["min"], premier["max"],
-                                     premier["pas"], premier["defaut"])
+        self.curseur_bruit = Curseur(x, 212, largeur, premier["min"], premier["max"], premier["pas"], premier["defaut"])
         self.bouton_bruiter = Bouton("Bruiter", x, 242, largeur, 32)
 
         self.boutons_filtre = []
@@ -198,9 +204,9 @@ class Application:
         self.bouton_vue_debruitee = Bouton("Débruitée", x + 2 * (largeur_vue + 4), 580, largeur_vue, 28)
 
 
-        self.mettre_a_jour_boutons()
+        self.update_buttons()
 
-    def mettre_a_jour_boutons(self):
+    def update_buttons(self):
         for i in range(len(self.boutons_bruit)):
             self.boutons_bruit[i].selectionne = (i == self.choix_bruit)
 
@@ -238,7 +244,7 @@ class Application:
             return
         self.vue = vue
         self.surface = creer_surface(self.image_affichee())
-        self.mettre_a_jour_boutons()
+        self.update_buttons()
 
     def afficher_message(self, texte):
         self.message = texte
@@ -251,11 +257,11 @@ class Application:
         self.choix_bruit = i
         b = BRUITS[i]
         self.curseur_bruit.changer_reglage(b["min"], b["max"], b["pas"], self.reglages_bruit[i])
-        self.mettre_a_jour_boutons()
+        self.update_buttons()
 
     def choisir_filtre(self, i):
         self.choix_filtre = i
-        self.mettre_a_jour_boutons()
+        self.update_buttons()
 
     def texte_reglage_bruit(self):
         b = BRUITS[self.choix_bruit]
@@ -284,16 +290,14 @@ class Application:
         f = FILTRES[self.choix_filtre]
         taille = self.curseur_filtre.valeur
 
-        debut = time.time()
         self.debruitee = f["fonction"](self.bruitee, taille)
-        duree = time.time() - debut
 
         self.snr_debruitee = calculer_snr(self.originale, self.debruitee)
         self.legende_debruitee = "Image débruitée : " + f["nom"] + " " + str(taille) + "×" + str(taille)
         self.afficher("debruitee")
 
 
-    def gerer_clic(self, position):
+    def mouse_clicked(self, position):
         for i in range(len(self.boutons_bruit)):
             if self.boutons_bruit[i].est_clique(position):
                 self.choisir_bruit(i)
@@ -303,6 +307,7 @@ class Application:
 
         if self.bouton_bruiter.est_clique(position):
             self.bruiter()
+
         elif self.bouton_debruiter.est_clique(position):
             self.debruiter()
         elif self.bouton_vue_originale.est_clique(position):
@@ -328,11 +333,11 @@ class Application:
 
         if self.bruitee is None:
             self.write("2. DÉBRUITAGE", MARGE, 294, self.police_petite, TEXTE_INACTIF)
-            self.write("bruiter d'abord", MARGE + 120, 294, self.police_petite, TEXTE_INACTIF)
             self.write(self.texte_reglage_filtre(), MARGE, 452, self.police_petite, TEXTE_INACTIF)
         else:
             self.write("2. DÉBRUITAGE", MARGE, 294, self.police_petite, TEXTE_DOUX)
             self.write(self.texte_reglage_filtre(), MARGE, 452, self.police_petite, TEXTE)
+
         self.curseur_filtre.dessiner(self.ecran)
         pygame.draw.line(self.ecran, BOUTON, (MARGE, 546), (PANNEAU - MARGE, 546))
 
@@ -351,6 +356,7 @@ class Application:
 
         for bouton in self.boutons_bruit + self.boutons_filtre:
             bouton.dessiner(self.ecran, self.police)
+
         self.bouton_bruiter.dessiner(self.ecran, self.police)
         self.bouton_debruiter.dessiner(self.ecran, self.police)
         self.bouton_vue_originale.dessiner(self.ecran, self.police_petite)
@@ -363,7 +369,7 @@ class Application:
         x_image = ZONE_X + (ZONE_LARGEUR - self.surface.get_width()) // 2
         self.ecran.blit(self.surface, (x_image, ZONE_Y))
 
-    def executer(self):
+    def run(self):
         horloge = pygame.time.Clock()
         continuer = True
 
@@ -372,32 +378,25 @@ class Application:
                 if evenement.type == pygame.QUIT:
                     continuer = False
 
-                self.curseur_bruit.gerer_evenement(evenement)
-                self.curseur_filtre.gerer_evenement(evenement)
+                self.curseur_bruit.handle_event(evenement)
+                self.curseur_filtre.handle_event(evenement)
 
                 if evenement.type == pygame.MOUSEBUTTONDOWN and evenement.button == 1:
-                    self.gerer_clic(evenement.pos)
-
-                if evenement.type == pygame.KEYDOWN:
-                    if evenement.key == pygame.K_1:
-                        self.afficher("originale")
-                    if evenement.key == pygame.K_2:
-                        self.afficher("bruitee")
-                    if evenement.key == pygame.K_3:
-                        self.afficher("debruitee")
+                    self.mouse_clicked(evenement.pos)
 
             self.dessiner()
             pygame.display.flip()
-            horloge.tick(30)
+            horloge.tick(60)
 
         pygame.quit()
 
 
 if __name__ == "__main__":
+
     if len(sys.argv) > 1:
         chemin = sys.argv[1]
     else:
-        chemin = IMAGE_PAR_DEFAUT
+        chemin = IMAGE
 
     application = Application(chemin)
-    application.executer()
+    application.run()
