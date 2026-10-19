@@ -1,85 +1,51 @@
-from main import CustomImage
-import random
+import numpy as np
 
-def poivre_sel(peekaboo = list[list]):
-
-    taux_bruit = 0.05
-
-    largeur = len(peekaboo)
-    hauteur = len(peekaboo[0])
-
-    for x in range(largeur):
-        for y in range(hauteur):
-            proba = random.random()
-            if proba < taux_bruit:
-                valeur = 255 if random.random() < 0.5 else 0
-                peekaboo[x][y] = (valeur, valeur, valeur)
-
-    return peekaboo
+SEED = 42
 
 
+def poivre_sel(image, taux=5):
+    randomizer = np.random.default_rng(SEED)
+    hauteur = image.shape[0]
+    largeur = image.shape[1]
+
+    tirage = randomizer.random((hauteur, largeur))
+    couleur = randomizer.random((hauteur, largeur))
+
+    pixels_touches = tirage < taux / 100
+    pixels_blancs = pixels_touches & (couleur < 0.5)
+    pixels_noirs = pixels_touches & (couleur >= 0.5)
+
+    resultat = image.copy()
+    resultat[pixels_blancs] = 255
+    resultat[pixels_noirs] = 0
+    return resultat
 
 
-def generer_bruit(width, height):
-    pixels = []
+def additif(image, amplitude=50):
+    randomizer = np.random.default_rng(SEED)
+    hauteur = image.shape[0]
+    largeur = image.shape[1]
 
-    for y in range(width):
-        ligne = []
+    bruit = randomizer.integers(-amplitude, amplitude + 1, size=(hauteur, largeur))
 
-        for x in range(height):
-            valeur = float(random.randint(40, 100)/100)
-            r, g, b = valeur, valeur, valeur
-            ligne.append([r, g, b])
+    resultat = image.astype(int)
+    for canal in range(3):
+        resultat[:, :, canal] = resultat[:, :, canal] + bruit
 
-        pixels.append(ligne)
+    resultat = np.clip(resultat, 0, 255)
+    return resultat.astype(np.uint8)
 
-    return pixels
 
-def bruit_additif(width, height):
-    pixels = []
-    
-    for y in range (width):
-        ligne = []
-        
-        for x in range(height):
-            valeur = random.randint(-50, 50)
-            r, g, b = valeur, valeur, valeur
-            ligne.append([r, g, b])
+def multiplicatif(image, intensite=30):
+    randomizer = np.random.default_rng(SEED)
+    hauteur = image.shape[0]
+    largeur = image.shape[1]
 
-        pixels.append(ligne)
+    bruit = randomizer.uniform(-intensite / 100, intensite / 100, size=(hauteur, largeur))
 
-    return pixels
+    resultat = image.astype(float)
+    for canal in range(3):
+        resultat[:, :, canal] = resultat[:, :, canal] * (1 + bruit)
 
-def limiter(valeur):
-    return max(0, min(255, valeur))
-
-def additif(peekaboo = list[list]) :
-    
-    largeur = len(peekaboo)
-    hauteur = len(peekaboo[0])
-    
-    temp = bruit_additif(largeur, hauteur)
-    
-    for x in range (largeur):
-        for y in range (hauteur):
-            valeur = (limiter(peekaboo[x][y][0] + temp[x][y][0]), limiter(peekaboo[x][y][1] + temp[x][y][1]), limiter(peekaboo[x][y][2] + temp[x][y][2]))
-            peekaboo[x][y] = valeur
-    
-    return peekaboo
-
-def multiplicatif(peekaboo = list[list]):
-    largeur = len(peekaboo)
-    hauteur = len(peekaboo[0])
-
-    temp = generer_bruit(largeur, hauteur)
-
-    for x in range(largeur):
-        for y in range(hauteur):
-
-            valeur = (int(peekaboo[x][y][0] * temp[x][y][0]), int(peekaboo[x][y][1] * temp[x][y][1]), int(peekaboo[x][y][2] * temp[x][y][2]))
-            peekaboo[x][y] = valeur
-
-    return peekaboo
-
-if __name__ == '__main__':
-    poivre_sel()
+    resultat = np.clip(resultat, 0, 255)
+    return resultat.astype(np.uint8)
