@@ -29,7 +29,7 @@ def convolution(image, noyau):
     return uniformiser(resultat)
 
 
-def moyenneur(image, taille=3):
+def convolutions(image, taille=3):
     noyau = np.ones((taille, taille)) / (taille * taille)
     return convolution(image, noyau)
 
@@ -43,17 +43,6 @@ def ligne_pascal(n):
         nouvelle_ligne.append(1)
         ligne = nouvelle_ligne
     return ligne
-
-
-def gaussien(image, taille=3):
-    ligne = ligne_pascal(taille)
-    noyau = np.zeros((taille, taille))
-    for i in range(taille):
-        for j in range(taille):
-            noyau[i][j] = ligne[i] * ligne[j]
-    noyau = noyau / np.sum(noyau)
-    return convolution(image, noyau)
-
 
 def median(image, taille=3):
     rayon = taille // 2

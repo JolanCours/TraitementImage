@@ -22,8 +22,7 @@ BRUITS = [
 ]
 
 FILTRES = [
-    {"nom": "Moyenneur", "fonction": debruitage.moyenneur},
-    {"nom": "Gaussien", "fonction": debruitage.gaussien},
+    {"nom": "Convolution", "fonction": debruitage.convolutions},
     {"nom": "Médian", "fonction": debruitage.median},
     {"nom": "Kuwahara", "fonction": debruitage.kuwahara},
 ]
@@ -164,7 +163,7 @@ class Application:
         self.snr_debruitee = None
         self.legende_bruitee = ""
         self.legende_debruitee = ""
-        self.vue = "originale"
+        self.vue = "original"
         self.surface = creer_surface(self.originale)
         self.message = ""
 
@@ -200,8 +199,8 @@ class Application:
 
         largeur_vue = (largeur - 8) // 3
         self.bouton_vue_originale = Bouton("Originale", x, 580, largeur_vue, 28)
-        self.bouton_vue_bruitee = Bouton("Bruitée", x + largeur_vue + 4, 580, largeur_vue, 28)
-        self.bouton_vue_debruitee = Bouton("Débruitée", x + 2 * (largeur_vue + 4), 580, largeur_vue, 28)
+        self.bouton_vue_bruitee = Bouton("Bruité", x + largeur_vue + 4, 580, largeur_vue, 28)
+        self.bouton_vue_debruitee = Bouton("Débruite", x + 2 * (largeur_vue + 4), 580, largeur_vue, 28)
 
 
         self.update_buttons()
@@ -269,7 +268,7 @@ class Application:
 
     def texte_reglage_filtre(self):
         taille = str(self.curseur_filtre.valeur)
-        return "Fenêtre : " + taille + "×" + taille
+        return "Fenetre : " + taille + "×" + taille
 
     def bruiter(self):
         b = BRUITS[self.choix_bruit]
